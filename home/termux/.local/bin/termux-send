@@ -14,9 +14,11 @@ usage() {
 }
 
 # Android also hands out 100.x addresses on mobile data, so only the VPN interface counts as Tailscale.
+# Reads tun0 from the full listing because Android refuses `ifconfig tun0` to apps (no /proc/net/dev access).
 # Prints nothing, rather than failing, when tun0 is down, so setup can fall back to the whole range.
 tailscale_address() {
-    { ifconfig tun0 2>/dev/null || true; } | awk '$1 == "inet" && $2 ~ /^100\./ {print $2; exit}'
+    { ifconfig 2>/dev/null || true; } |
+        awk '/^[^[:space:]]/ {interface = $1} interface == "tun0:" && $1 == "inet" && $2 ~ /^100\./ {print $2; exit}'
 }
 
 setup() {
