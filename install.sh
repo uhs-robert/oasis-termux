@@ -27,6 +27,7 @@ nvim --headless '+Lazy! sync' +qa
 
 seed_ssh_config
 ensure_ssh_key
+authorize_github_keys
 
 chsh -s zsh
 termux-reload-settings

@@ -36,6 +36,18 @@ Kept minimal on purpose, no LSP, no autocomplete, no linters, just a fast termin
 - Neovim (LazyVim), Yazi, and LazyGit set up out of the box
 - `up` uses topgrade to keep everything updated
 
+## SSH into the phone
+
+The installer can ask for a GitHub username and authorize that account's public keys (`github.com/<user>.keys`). Once a key is authorized, opening Termux starts `sshd` on port 8022 with password login off; with no authorized keys it never starts.
+
+Put the phone and your computer on the same network, or both on [Tailscale](https://tailscale.com/) to reach it from anywhere, then with Termux open:
+
+```sh
+ssh -p 8022 <phone-address>
+```
+
+Android may stop Termux after a while in the background; open it again to bring `sshd` back.
+
 ## Extras
 
 [HeliBoard](https://github.com/Helium314/HeliBoard) keyboard layouts, including a PC-style one for Termux, are in [extras/heliboard](extras/heliboard/).
