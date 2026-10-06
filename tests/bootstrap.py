@@ -34,13 +34,14 @@ with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
                  'termux-wake-lock', 'termux-wake-unlock', 'scp'):
         executable(bins / name, 'printf "%s\\n" "$0 $*" >> "$HOME/calls"\n')
     executable(bins / 'pgrep', 'exit 1\n')
-    # Mobile data also gets a 100.x address; only tun0 is Tailscale.
-    executable(bins / 'ifconfig', r'''case ${1-} in
-tun0)
-    [[ -z ${NO_TUN-} ]] || { echo 'tun0: error fetching interface information: Device not found' >&2; exit 1; }
-    printf 'tun0: flags=81<UP>\n        inet 100.86.93.113  netmask 255.255.255.255\n' ;;
-*) printf 'rmnet16: flags=4305<UP>\n        inet 100.83.93.98  netmask 255.255.255.255\n' ;;
-esac
+    # Like Android: naming an interface fails, the full listing works. Mobile data also gets a 100.x address;
+    # only tun0 is Tailscale.
+    executable(bins / 'ifconfig', r'''if (( $# )); then
+    echo 'Warning: cannot open /proc/net/dev (Permission denied). Limited output.' >&2
+    exit 1
+fi
+printf 'rmnet16: flags=4305<UP>\n        inet 100.83.93.98  netmask 255.255.255.255\n'
+[[ -n ${NO_TUN-} ]] || printf 'tun0: flags=81<UP>\n        inet 100.86.93.113  netmask 255.255.255.255\n'
 ''')
     executable(bins / 'curl', r'''if [[ $* == *github.com/someone.keys* ]]; then
     printf 'ssh-ed25519 AAAAmockkey someone\n'
