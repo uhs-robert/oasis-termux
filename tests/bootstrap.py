@@ -31,9 +31,17 @@ with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
     bins = prefix / 'bin'
     bins.mkdir(parents=True)
     for name in ('pkg', 'chsh', 'termux-reload-settings', 'ya', 'nvim', 'sshd',
-                 'termux-wake-lock', 'termux-wake-unlock'):
+                 'termux-wake-lock', 'termux-wake-unlock', 'scp'):
         executable(bins / name, 'printf "%s\\n" "$0 $*" >> "$HOME/calls"\n')
     executable(bins / 'pgrep', 'exit 1\n')
+    # Mobile data also gets a 100.x address; only tun0 is Tailscale.
+    executable(bins / 'ifconfig', r'''case ${1-} in
+tun0)
+    [[ -z ${NO_TUN-} ]] || { echo 'tun0: error fetching interface information: Device not found' >&2; exit 1; }
+    printf 'tun0: flags=81<UP>\n        inet 100.86.93.113  netmask 255.255.255.255\n' ;;
+*) printf 'rmnet16: flags=4305<UP>\n        inet 100.83.93.98  netmask 255.255.255.255\n' ;;
+esac
+''')
     executable(bins / 'curl', r'''if [[ $* == *github.com/someone.keys* ]]; then
     printf 'ssh-ed25519 AAAAmockkey someone\n'
     exit 0
@@ -180,6 +188,28 @@ fi
     run(['bash', str(fresh / '.local/bin/termux-sshd')], env)
     assert 'sshd' not in (fresh / 'calls').read_text().replace('termux-sshd', '')
     print('PASS: keep-alive toggles the boot script and wake lock; sshd needs an authorized key')
+
+    send = ['bash', str(remote / '.local/bin/termux-send')]
+    run(send + ['setup'], remote_env, success=False)
+    setup_out = run(send + ['setup', 'me@100.114.38.121'], remote_env).stdout
+    run(send + ['setup', 'me@100.114.38.121'], remote_env)
+    send_key = remote / '.ssh/id_ed25519_computer'
+    assert send_key.exists() and send_key.with_suffix('.pub').exists()
+    ssh_config = (remote / '.ssh/config').read_text()
+    assert ssh_config.count('Host computer') == 1, ssh_config
+    assert 'HostName 100.114.38.121' in ssh_config and 'User me' in ssh_config
+    authorized_line = next(line for line in setup_out.splitlines() if line.startswith('from='))
+    assert authorized_line.startswith('from="100.86.93.113",restrict,command="/usr/lib/ssh/sftp-server" ssh-ed25519 '), authorized_line
+    run(send + ['photo one.jpg', 'b.png'], remote_env)
+    assert 'scp -- photo one.jpg b.png computer:Downloads/' in (remote / 'calls').read_text()
+    print('PASS: termux-send sets up once, locks the key to the Tailscale address and copies into Downloads')
+
+    offline, offline_env = home('tailscale off')
+    install(offline_env)
+    offline_out = run(['bash', str(offline / '.local/bin/termux-send'), 'setup', 'me@100.114.38.121'],
+                      dict(offline_env, NO_TUN='1')).stdout
+    assert 'from="100.64.0.0/10",restrict,' in offline_out, offline_out
+    print('PASS: termux-send setup falls back to the Tailscale range when tun0 is down')
 
     config.write_text('''Host first second * !excluded foo? bar[12]
     HostName never-offer-this

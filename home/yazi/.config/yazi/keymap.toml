@@ -10,6 +10,7 @@ prepend_keymap = [
   { on = ["g", "l"], run = "shell --block -- lazygit", desc = "LazyGit" },
   { on = ["g", "w"], run = "plugin vcs-files", desc = "Git changes" },
   { on = ["c", "m"], run = "plugin chmod", desc = "Change permissions" },
+  { on = ["c", "s"], run = 'shell --block -- termux-send "$@"', desc = "Send to computer" },
   { on = ["T", "p"], run = "plugin toggle-pane min-preview", desc = "Toggle preview" },
   { on = ["T", "f"], run = "plugin toggle-pane max-preview", desc = "Maximize preview" },
   { on = "<C-d>", run = "seek 5", desc = "Preview down" },
