@@ -1,0 +1,31 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Keeps sshd reachable while Termux is in the background and after reboots, or stops doing so.
+set -euo pipefail
+
+# Termux:Boot runs every executable in ~/.termux/boot at startup, so this file existing is the "on" state.
+boot_script="$HOME/.termux/boot/keepalive"
+
+case ${1:-status} in
+on)
+    mkdir -p -- "${boot_script%/*}"
+    # shellcheck disable=SC2016 # $HOME expands when the boot script runs, not now.
+    printf '%s\n' '#!/data/data/com.termux/files/usr/bin/sh' 'termux-wake-lock' \
+        'exec "$HOME/.local/bin/termux-sshd"' > "$boot_script"
+    chmod 700 "$boot_script"
+    termux-wake-lock
+    bash "$HOME/.local/bin/termux-sshd"
+    printf 'Keep-alive on. Restarting after a reboot needs the Termux:Boot app, opened once.\n'
+    ;;
+off)
+    rm -f -- "$boot_script"
+    termux-wake-unlock
+    printf 'Keep-alive off. sshd still runs while Termux is open.\n'
+    ;;
+status)
+    if [[ -e $boot_script ]]; then printf 'on\n'; else printf 'off\n'; fi
+    ;;
+*)
+    printf 'Usage: termux-keepalive [on|off|status]\n' >&2
+    exit 2
+    ;;
+esac

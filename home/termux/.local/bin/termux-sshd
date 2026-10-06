@@ -1,0 +1,7 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Starts sshd on 8022 for key logins only, once a key is authorized and no server is running.
+set -euo pipefail
+
+[[ -s $HOME/.ssh/authorized_keys ]] || exit 0
+pgrep -x sshd >/dev/null && exit 0
+exec sshd -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no
