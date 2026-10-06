@@ -7,3 +7,6 @@ __pycache__/
 # Only the example SSH config is tracked
 home/ssh/.ssh/*
 !home/ssh/.ssh/config.example
+
+# Release notes, pasted into the GitHub release
+/RELEASE.md
