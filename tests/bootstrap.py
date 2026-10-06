@@ -24,9 +24,9 @@ def executable(path, body):
 
 with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
     root = Path(temporary)
-    checkout = root / 'checkout' / 'termux'
+    checkout = root / 'checkout' / 'oasis-termux'
     # Keep symlinks as links, and let the installer clone repos/ itself (git is mocked).
-    shutil.copytree(SOURCE, checkout, symlinks=True, ignore=shutil.ignore_patterns('repos'))
+    shutil.copytree(SOURCE, checkout, symlinks=True, ignore=shutil.ignore_patterns('repos', '.git'))
     prefix = root / 'prefix'
     bins = prefix / 'bin'
     bins.mkdir(parents=True)
@@ -93,7 +93,7 @@ fi
     assert (fresh / '.config/yazi/flavors/oasis-night-dark.yazi').is_symlink()
     assert (fresh / '.termux/font.ttf').read_bytes().startswith(b'\x00\x01\x00\x00')
     assert not (fresh / '.termux/font.ttf').is_symlink()
-    assert not (checkout / 'zsh/.local').exists()
+    assert not (checkout / 'home/zsh/.local').exists()
     print('PASS: fresh bootstrap and safe rerun, paths containing spaces')
 
     font = fresh / '.termux/font.ttf'

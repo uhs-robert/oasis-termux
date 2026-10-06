@@ -5,5 +5,5 @@ __pycache__/
 /repos/
 
 # Only the example SSH config is tracked
-ssh/.ssh/*
-!ssh/.ssh/config.example
+home/ssh/.ssh/*
+!home/ssh/.ssh/config.example
