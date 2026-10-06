@@ -1,2 +1,3 @@
 # antidote bundle file - see `antidote help`
 Aloxaf/fzf-tab
+zsh-users/zsh-autosuggestions
