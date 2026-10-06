@@ -7,7 +7,7 @@ Guidance for coding agents working in this repository. `CLAUDE.md` is a pointer 
 Standalone Termux setup for mobile SSH, laid out like [oasis-dots](https://github.com/uhs-robert/oasis-dots) so the two stay familiar side by side.
 
 - `home/<package>/` — Stow packages symlinked into `~`. Layout under a package mirrors `$HOME` exactly. `.stowrc` pins `--dir=home --target=~`.
-- `packages/` — `pkg.ini` lists Termux packages (`[OPTIONAL]` entries install only when packaged); `stow.ini` lists the packages `install.sh` stows.
+- `packages/` — `pkg.ini` lists Termux packages; `stow.ini` lists the packages `install.sh` stows.
 - `extras/` — configs imported by hand into other apps, not stowed (HeliBoard keyboard layouts).
 - `lib/` — helpers sourced by `install.sh`. They are copies adapted from oasis-dots, not shared code: the phone never clones the desktop repo, and `pkg` replaces pacman and sudo.
 - `repos/` — gitignored. `install.sh` keeps a sparse `oasis.nvim` clone here that the yazi flavour and Termux colours symlink into, so those links climb out of `home/` with relative paths.
