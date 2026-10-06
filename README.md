@@ -46,7 +46,15 @@ Put the phone and your computer on the same network, or both on [Tailscale](http
 ssh -p 8022 <phone-address>
 ```
 
-Android may stop Termux after a while in the background; open it again to bring `sshd` back.
+Android may stop Termux after a while in the background; open it again to bring `sshd` back. To keep the phone reachable without opening it, turn on keep-alive:
+
+```sh
+termux-keepalive on      # hold a wake lock and restart sshd after reboots
+termux-keepalive off     # back to sshd only while Termux is open
+termux-keepalive         # show whether it is on
+```
+
+Restarting after a reboot needs the [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) app, opened once. Keep-alive costs some battery and keeps the Termux notification up.
 
 ## Extras
 

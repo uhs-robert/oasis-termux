@@ -30,9 +30,11 @@ with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
     prefix = root / 'prefix'
     bins = prefix / 'bin'
     bins.mkdir(parents=True)
-    for name in ('pkg', 'chsh', 'termux-reload-settings', 'ya', 'nvim'):
+    for name in ('pkg', 'chsh', 'termux-reload-settings', 'ya', 'nvim', 'sshd',
+                 'termux-wake-lock', 'termux-wake-unlock'):
         executable(bins / name, 'printf "%s\\n" "$0 $*" >> "$HOME/calls"\n')
     executable(bins / 'apt-cache', 'exit 100\n')
+    executable(bins / 'pgrep', 'exit 1\n')
     executable(bins / 'curl', r'''if [[ $* == *github.com/someone.keys* ]]; then
     printf 'ssh-ed25519 AAAAmockkey someone\n'
     exit 0
@@ -162,6 +164,23 @@ fi
     assert authorized.read_text() == 'ssh-ed25519 AAAAmockkey someone\n'
     assert authorized.stat().st_mode & 0o777 == 0o600
     print('PASS: GitHub keys are authorized once, private to the user')
+
+    keepalive = ['bash', str(remote / '.local/bin/termux-keepalive')]
+    boot_script = remote / '.termux/boot/keepalive'
+    assert run(keepalive, remote_env).stdout == 'off\n'
+    run(keepalive + ['on'], remote_env)
+    assert boot_script.stat().st_mode & 0o777 == 0o700
+    assert 'termux-sshd' in boot_script.read_text()
+    calls = (remote / 'calls').read_text()
+    assert 'termux-wake-lock' in calls and 'sshd -o PasswordAuthentication=no' in calls, calls
+    assert run(keepalive + ['status'], remote_env).stdout == 'on\n'
+    run(keepalive + ['off'], remote_env)
+    assert not boot_script.exists()
+    assert 'termux-wake-unlock' in (remote / 'calls').read_text()
+    run(keepalive + ['bogus'], remote_env, success=False)
+    run(['bash', str(fresh / '.local/bin/termux-sshd')], env)
+    assert 'sshd' not in (fresh / 'calls').read_text().replace('termux-sshd', '')
+    print('PASS: keep-alive toggles the boot script and wake lock; sshd needs an authorized key')
 
     config.write_text('''Host first second * !excluded foo? bar[12]
     HostName never-offer-this
