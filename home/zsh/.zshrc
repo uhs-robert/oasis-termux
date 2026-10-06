@@ -27,11 +27,6 @@ _ssh_hosts() {
 }
 source "$HOME/.antidote/antidote.zsh"
 antidote load "$HOME/.zsh_plugins.txt"
-if [[ -r "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-    source "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-else
-    antidote bundle zsh-users/zsh-autosuggestions
-fi
 
 s() {
     local host

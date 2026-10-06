@@ -33,7 +33,6 @@ with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
     for name in ('pkg', 'chsh', 'termux-reload-settings', 'ya', 'nvim', 'sshd',
                  'termux-wake-lock', 'termux-wake-unlock'):
         executable(bins / name, 'printf "%s\\n" "$0 $*" >> "$HOME/calls"\n')
-    executable(bins / 'apt-cache', 'exit 100\n')
     executable(bins / 'pgrep', 'exit 1\n')
     executable(bins / 'curl', r'''if [[ $* == *github.com/someone.keys* ]]; then
     printf 'ssh-ed25519 AAAAmockkey someone\n'
