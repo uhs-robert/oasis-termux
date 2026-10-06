@@ -21,13 +21,14 @@ A Termux setup for working over SSH from your phone, and for reaching the phone 
 - Neovim (a trimmed LazyVim), Yazi and LazyGit, set up out of the box.
 - [Oasis](https://github.com/uhs-robert/oasis.nvim) Night colours in Termux, Neovim and Yazi, a Nerd Font, and an extra-keys row with `ESC`, `CTRL`, `ALT`, `TAB` and arrows.
 - `s` to fuzzy-pick a host from `~/.ssh/config`, and an optional SSH server for your own keys with a [keep-alive toggle](#-ssh-into-the-phone).
+- [`termux-send`](#-send-files-to-your-computer) and `c s` in Yazi to copy files to your computer.
 - `up` updates everything through topgrade.
 
 | Requirement                                                  | Needed for                                                                                                  |
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | [Termux](https://termux.dev/) from F-Droid or GitHub         | Everything. Run it directly, not inside a proot distribution; the installer refuses those.                  |
 | [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) | _Optional: to restart `sshd` after a reboot with keep-alive on. Install it from the same source as Termux._ |
-| [Tailscale](https://tailscale.com/)                          | _Optional: to reach the phone over SSH from outside your local network._                                    |
+| [Tailscale](https://tailscale.com/)                          | _Optional: to reach the phone from outside your local network, and to send files to your computer._         |
 
 > [!NOTE]
 > Managed with [GNU Stow](https://www.gnu.org/software/stow/); packages live under `home/`. It's the mobile companion to [oasis-dots](https://github.com/uhs-robert/oasis-dots) but doesn't need it.
@@ -88,6 +89,26 @@ Work on the phone from your computer's keyboard: copy files, run commands or edi
    ```
 
    Restarting after a reboot needs the [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) app, opened once. Keep-alive costs some battery and keeps the Termux notification up.
+
+## 📤 Send files to your computer
+
+Send photos, downloads or anything else from the phone straight into your computer's `~/Downloads`, from Yazi or the shell. The phone gets its own key, and your computer only lets that key copy files, only from the phone.
+
+1. Put both devices on [Tailscale](https://tailscale.com/) and run an SSH server on the computer that accepts key logins.
+   - **With [oasis-dots](https://github.com/uhs-robert/oasis-dots):** run `just ssh-server`. It installs Tailscale and an SSH server limited to Tailscale addresses with key login only; see [the script](https://github.com/uhs-robert/oasis-dots/blob/main/lib/tailnet-ssh.sh).
+   - **Anywhere else:** install and enable OpenSSH's server, turn off password login, and ideally allow logins only from Tailscale (`AllowUsers *@100.64.0.0/10` in `sshd_config`).
+2. On the phone, create the key and the `computer` host entry, using your user name and the computer's Tailscale address:
+
+   ```sh
+   termux-send setup you@100.x.y.z
+   ```
+
+3. On the computer, add the line it prints to `~/.ssh/authorized_keys`. The line limits the key to file transfer from the phone's Tailscale address. It points at Arch's `sftp-server`; the setup output lists the path for other systems.
+4. Send files:
+   - **In Yazi:** select files, or hover one, and press `c s`.
+   - **In the shell:** `termux-send <file>...`
+
+   They land in `~/Downloads` on the computer. Set `TERMUX_SEND_DIR` to use another folder, or `TERMUX_SEND_HOST` to send to another host from `~/.ssh/config`.
 
 ## 🍭 Extras
 

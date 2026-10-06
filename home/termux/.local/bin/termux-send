@@ -1,0 +1,57 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Sends files to your computer over SSH, or sets up the key and host entry that sending uses.
+set -euo pipefail
+
+key="$HOME/.ssh/id_ed25519_computer"
+config="$HOME/.ssh/config"
+host=${TERMUX_SEND_HOST:-computer}
+destination=${TERMUX_SEND_DIR:-Downloads}
+tailnet_range=100.64.0.0/10
+
+usage() {
+    printf 'Usage: termux-send <file>...          copy files to %s:%s/\n' "$host" "$destination"
+    printf '       termux-send setup <user>@<computer-address>\n'
+}
+
+# Android also hands out 100.x addresses on mobile data, so only the VPN interface counts as Tailscale.
+# Prints nothing, rather than failing, when tun0 is down, so setup can fall back to the whole range.
+tailscale_address() {
+    { ifconfig tun0 2>/dev/null || true; } | awk '$1 == "inet" && $2 ~ /^100\./ {print $2; exit}'
+}
+
+setup() {
+    local target=${1-} user address phone public
+    [[ $target == ?*@?* ]] || { usage >&2; exit 2; }
+    user=${target%@*}
+    address=${target#*@}
+
+    mkdir -p -- "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    # No passphrase: sends run from Yazi without a prompt. The computer limits this key to file transfer from this phone.
+    [[ -e $key ]] || ssh-keygen -q -t ed25519 -N '' -C termux-send -f "$key"
+
+    if [[ -e $config ]] && grep -qiE "^[[:space:]]*Host[[:space:]]+$host([[:space:]]|$)" "$config"; then
+        printf 'Kept the existing "Host %s" entry in %s.\n' "$host" "$config"
+    else
+        (umask 077; printf '\nHost %s\n    HostName %s\n    User %s\n    IdentityFile %s\n    IdentitiesOnly yes\n' \
+            "$host" "$address" "$user" "$key" >> "$config")
+        printf 'Added "Host %s" to %s.\n' "$host" "$config"
+    fi
+
+    phone=$(tailscale_address)
+    public=$(cat -- "$key.pub")
+    printf '\nOn the computer, add this line to ~/.ssh/authorized_keys:\n\n'
+    printf 'from="%s",restrict,command="/usr/lib/ssh/sftp-server" %s\n\n' "${phone:-$tailnet_range}" "$public"
+    printf 'It lets this key copy files from %s only, with no shell.\n' "${phone:-any Tailscale address}"
+    printf 'On Debian or Ubuntu, sftp-server is /usr/lib/openssh/sftp-server; on macOS and Fedora, /usr/libexec/sftp-server.\n'
+}
+
+case ${1-} in
+"" | -h | --help) usage ;;
+setup) setup "${2-}" ;;
+*)
+    # Always a directory target, so a single file never overwrites a file named like the destination.
+    scp -- "$@" "$host:$destination/"
+    printf 'Sent %d file(s) to %s:%s/\n' "$#" "$host" "$destination"
+    ;;
+esac
