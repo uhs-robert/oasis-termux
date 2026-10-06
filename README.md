@@ -13,7 +13,7 @@
 </p>
 <p align="center">Oasis-themed mobile environment for Termux.</p>
 
-## 🖥️ Overview
+## 📱 Overview
 
 A Termux setup for working over SSH from your phone, and for reaching the phone over SSH from your other machines. Kept minimal on purpose: no LSP, no autocomplete, no linters, just a fast terminal that you don't have to babysit or maintain, with a few touches for readability on a phone screen.
 
@@ -23,52 +23,71 @@ A Termux setup for working over SSH from your phone, and for reaching the phone 
 - `s` to fuzzy-pick a host from `~/.ssh/config`, and an optional SSH server for your own keys with a [keep-alive toggle](#-ssh-into-the-phone).
 - `up` updates everything through topgrade.
 
+| Requirement                                                  | Needed for                                                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| [Termux](https://termux.dev/) from F-Droid or GitHub         | Everything. Run it directly, not inside a proot distribution; the installer refuses those.                  |
+| [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) | _Optional: to restart `sshd` after a reboot with keep-alive on. Install it from the same source as Termux._ |
+| [Tailscale](https://tailscale.com/)                          | _Optional: to reach the phone over SSH from outside your local network._                                    |
+
 > [!NOTE]
 > Managed with [GNU Stow](https://www.gnu.org/software/stow/); packages live under `home/`. It's the mobile companion to [oasis-dots](https://github.com/uhs-robert/oasis-dots) but doesn't need it.
 
-**Requirements:** [Termux](https://termux.dev/) from F-Droid or GitHub, run directly rather than inside a proot distribution, which the installer refuses.
-
 ## 📦 Install
 
-In a fresh Termux session:
+1. In a fresh Termux session, clone the repo and run the installer, then follow its prompts:
 
-```sh
-pkg update -y && pkg install -y git && git clone https://github.com/uhs-robert/oasis-termux.git ~/oasis-termux && bash ~/oasis-termux/install.sh
-```
+   ```sh
+   pkg update -y && pkg install -y git && git clone https://github.com/uhs-robert/oasis-termux.git ~/oasis-termux && bash ~/oasis-termux/install.sh
+   ```
 
-Already have the repo? Just run `bash ~/oasis-termux/install.sh` again.
+2. Load the new shell:
 
-The installer also clones the Oasis themes into `repos/oasis.nvim`, as a shallow sparse checkout of the `extras/yazi` and `extras/termux` folders only (about 8 MB). The yazi flavour and the Termux colours are symlinks into it, so rerunning the installer updates them.
+   ```sh
+   exec zsh
+   ```
 
-Follow the prompts. When it's done, run `exec zsh`.
+3. Add your SSH hosts to `~/.ssh/config`:
 
-Add your SSH hosts in `~/.ssh/config` (`v ~/.ssh/config`), then copy your key to each server:
+   ```sh
+   v ~/.ssh/config
+   ```
 
-```sh
-ssh-copy-id -i ~/.ssh/id_ed25519.pub your-host-alias
-```
+4. Copy your key to each server:
 
-Connect with `s` to fuzzy-pick a host, or `ssh alias` directly.
+   ```sh
+   ssh-copy-id -i ~/.ssh/id_ed25519.pub your-host-alias
+   ```
+
+5. Connect with `s` to fuzzy-pick a host, or `ssh your-host-alias` directly.
+
+> [!TIP]
+> To update or repair an install, run `bash ~/oasis-termux/install.sh` again.
 
 ## 📡 SSH into the phone
 
-The installer can ask for a GitHub username and authorize that account's public keys (`github.com/<user>.keys`). Once a key is authorized, opening Termux starts `sshd` on port 8022 with password login off; with no authorized keys it never starts.
+Work on the phone from your computer's keyboard: copy files, run commands or edit configs over SSH, with only your own keys allowed in.
 
-Put the phone and your computer on the same network, or both on [Tailscale](https://tailscale.com/) to reach it from anywhere, then with Termux open:
+1. When the installer asks for a GitHub username, enter yours.
+   > This authorizes your account's public keys (`github.com/<user>.keys`).
+   >
+   > If you skipped it, run the installer again; it asks until a key is authorized.
+2. Open Termux. It starts `sshd` on port 8022 with password login off; with no authorized keys it never starts.
+3. Put the phone and your computer on the same network, or both on [Tailscale](https://tailscale.com/) to reach the phone from anywhere.
+4. From your computer, while Termux is open on your phone:
 
-```sh
-ssh -p 8022 <phone-address>
-```
+   ```sh
+   ssh -p 8022 <phone-address>
+   ```
 
-Android may stop Termux after a while in the background; open it again to bring `sshd` back. To keep the phone reachable without opening it, turn on keep-alive:
+5. Optionally, keep the phone reachable without opening Termux. Android may stop Termux after a while in the background, so keep-alive holds a wake lock and restarts `sshd` after reboots:
 
-```sh
-termux-keepalive on      # hold a wake lock and restart sshd after reboots
-termux-keepalive off     # back to sshd only while Termux is open
-termux-keepalive         # show whether it is on
-```
+   ```sh
+   termux-keepalive on      # stay reachable in the background and after reboots
+   termux-keepalive off     # back to sshd only while Termux is open
+   termux-keepalive         # show whether it is on
+   ```
 
-Restarting after a reboot needs the [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) app, opened once. Keep-alive costs some battery and keeps the Termux notification up.
+   Restarting after a reboot needs the [Termux:Boot](https://f-droid.org/packages/com.termux.boot/) app, opened once. Keep-alive costs some battery and keeps the Termux notification up.
 
 ## 🍭 Extras
 
