@@ -35,3 +35,7 @@ Kept minimal on purpose, no LSP, no autocomplete, no linters, just a fast termin
 - Fastfetch on startup
 - Neovim (LazyVim), Yazi, and LazyGit set up out of the box
 - `up` uses topgrade to keep everything updated
+
+## Extras
+
+[HeliBoard](https://github.com/Helium314/HeliBoard) keyboard layouts, including a PC-style one for Termux, are in [extras/heliboard](extras/heliboard/).

@@ -9,5 +9,5 @@
 
 ## Usage
 
-The installer stows both into `~/.termux/heliboard/`. Import the `.jsonc` files in HeliBoard:
+Import the `.jsonc` files from this checkout in HeliBoard:
 **Settings → Layouts → Custom layouts → Add layout**
