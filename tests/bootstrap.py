@@ -33,7 +33,11 @@ with tempfile.TemporaryDirectory(prefix='termux test ') as temporary:
     for name in ('pkg', 'chsh', 'termux-reload-settings', 'ya', 'nvim'):
         executable(bins / name, 'printf "%s\\n" "$0 $*" >> "$HOME/calls"\n')
     executable(bins / 'apt-cache', 'exit 100\n')
-    executable(bins / 'curl', r'''while (( $# )); do
+    executable(bins / 'curl', r'''if [[ $* == *github.com/someone.keys* ]]; then
+    printf 'ssh-ed25519 AAAAmockkey someone\n'
+    exit 0
+fi
+while (( $# )); do
     if [[ $1 == --output ]]; then
         case ${FONT_DOWNLOAD_MODE:-valid} in
             failed) printf partial > "$2"; exit 18 ;;
@@ -87,6 +91,7 @@ fi
     assert 'personal' in config.read_text()
     assert '# local change' in manifest.read_text()
     assert (fresh / '.zshrc').is_symlink()
+    assert not (fresh / '.ssh/authorized_keys').exists()
     assert (fresh / '.termux/colors.properties').is_symlink()
     assert (checkout / 'repos/oasis.nvim/.git').exists()
     assert (fresh / '.config/yazi/flavors/oasis-night-dark.yazi').is_symlink()
@@ -148,6 +153,15 @@ fi
     install(blocked_env, success=False)
     assert (blocked / '.ssh/id_ed25519').is_symlink()
     print('PASS: dangling key symlinks are never replaced')
+
+    remote, remote_env = home('remote')
+    remote_env['OASIS_SSH_GITHUB_USER'] = 'someone'
+    install(remote_env)
+    install(remote_env)
+    authorized = remote / '.ssh/authorized_keys'
+    assert authorized.read_text() == 'ssh-ed25519 AAAAmockkey someone\n'
+    assert authorized.stat().st_mode & 0o777 == 0o600
+    print('PASS: GitHub keys are authorized once, private to the user')
 
     config.write_text('''Host first second * !excluded foo? bar[12]
     HostName never-offer-this

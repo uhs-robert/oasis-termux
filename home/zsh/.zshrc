@@ -4,6 +4,10 @@ export EDITOR=nvim VISUAL=nvim
 # Resolve the checkout from this Stow link, even when cloned outside ~/oasis-termux.
 export TERMUX_DOTFILES=${${(%):-%x}:A:h:h:h}
 export PATH="$HOME/.local/bin:$PATH"
+# Serve SSH on 8022 while Termux is open, but only once a key may log in, and never by password.
+if [[ -s $HOME/.ssh/authorized_keys ]] && ! pgrep -x sshd >/dev/null; then
+    sshd -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no
+fi
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000

@@ -42,3 +42,23 @@ ensure_ssh_key() {
     done
   fi
 }
+
+# Lets the keys a GitHub account publishes log in to this phone's sshd.
+# Asks only on a terminal and only until a key is authorized, so reruns stay quiet.
+authorize_github_keys() {
+  local authorized="$HOME/.ssh/authorized_keys"
+  local github_user=${OASIS_SSH_GITHUB_USER-} keys key
+  if [[ -z $github_user && -t 0 && ! -s $authorized ]]; then
+    read -rp 'GitHub user whose public keys may SSH into this phone (blank to skip): ' github_user
+  fi
+  [[ -n $github_user ]] || return 0
+  if ! keys=$(curl -fsSL "https://github.com/$github_user.keys") || [[ -z $keys ]]; then
+    warn "No SSH keys fetched for GitHub user $github_user"
+    return 0
+  fi
+  (umask 077; touch "$authorized")
+  while IFS= read -r key; do
+    grep -qxF -- "$key" "$authorized" || printf '%s\n' "$key" >>"$authorized"
+  done <<<"$keys"
+  success "$github_user's GitHub keys can SSH in on port 8022 while Termux is open"
+}
