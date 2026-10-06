@@ -1,8 +1,8 @@
 [[ -o interactive ]] || return
 
 export EDITOR=nvim VISUAL=nvim
-# Resolve the checkout from this Stow link, even when cloned outside ~/dotfiles.
-export TERMUX_DOTFILES=${${(%):-%x}:A:h:h:h}
+# Resolve the checkout from this Stow link, even when cloned outside ~/oasis-termux.
+export TERMUX_DOTFILES=${${(%):-%x}:A:h:h}
 export PATH="$HOME/.local/bin:$PATH"
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000

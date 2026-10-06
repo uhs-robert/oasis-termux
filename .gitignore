@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+
+# Sparse oasis.nvim clone made by install.sh
+/repos/
+
+# Only the example SSH config is tracked
+ssh/.ssh/*
+!ssh/.ssh/config.example

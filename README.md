@@ -1,4 +1,4 @@
-# Termux
+# Oasis Termux
 
 Standalone mobile SSH environment for Termux.
 
@@ -7,12 +7,12 @@ Standalone mobile SSH environment for Termux.
 In a fresh Termux session:
 
 ```sh
-pkg update -y && pkg install -y git && git clone https://github.com/uhs-robert/oasis-dots.git ~/dotfiles && bash ~/dotfiles/termux/install.sh
+pkg update -y && pkg install -y git && git clone https://github.com/uhs-robert/oasis-termux.git ~/oasis-termux && bash ~/oasis-termux/install.sh
 ```
 
-Already have the repo? Just run `bash ~/dotfiles/termux/install.sh` again.
+Already have the repo? Just run `bash ~/oasis-termux/install.sh` again.
 
-The installer also clones the Oasis themes into `termux/repos/oasis.nvim`, as a shallow sparse checkout of the `extras/yazi` and `extras/termux` folders only (about 8 MB). The yazi flavour and the Termux colours are symlinks into it, so rerunning the installer updates them.
+The installer also clones the Oasis themes into `repos/oasis.nvim`, as a shallow sparse checkout of the `extras/yazi` and `extras/termux` folders only (about 8 MB). The yazi flavour and the Termux colours are symlinks into it, so rerunning the installer updates them.
 
 Follow the prompts. When it's done, run `exec zsh`.
 
